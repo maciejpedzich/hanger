@@ -6,6 +6,8 @@ const server = createServer((req, res) => {
   const attacker = req.headers['x-forwarded-for'];
   const host = req.headers['X-Targeted-Host'];
 
+  console.log(req.headers);
+
   console.log(
     `[${connOpenDate.toLocaleString()}] ${attacker} targeted ${host} on ${
       req.method

@@ -4,9 +4,7 @@ import { clearInterval, setInterval } from 'node:timers';
 const server = createServer((req, res) => {
   const connOpenDate = new Date();
   const attacker = req.headers['x-forwarded-for'];
-  const host = req.headers['X-Targeted-Host'];
-
-  console.log(req.headers);
+  const host = req.headers['x-forwarded-host'];
 
   console.log(
     `[${connOpenDate.toLocaleString()}] ${attacker} targeted ${host} on ${

@@ -1,18 +1,18 @@
 import { createServer } from 'node:http';
 import { clearInterval, setInterval } from 'node:timers';
 
+const msg = ':) you are an idiot hahahahaha :)';
+
 const server = createServer((req, res) => {
   const connOpenDate = new Date();
+  const dateLogText = connOpenDate.toLocaleString('pl');
   const attacker = req.headers['x-forwarded-for'];
   const host = req.headers['x-forwarded-host'];
 
   console.log(
-    `[${connOpenDate.toLocaleString()}] ${attacker} targeted ${host} on ${
-      req.method
-    } ${req.url}`
+    `[${dateLogText}] ${attacker} targeted ${host} on ${req.method} ${req.url}`
   );
 
-  const msg = ':) you are an idiot hahahahaha :)';
   let charIdx = 0;
 
   const intervalId = setInterval(() => {
@@ -27,11 +27,12 @@ const server = createServer((req, res) => {
   res.once('close', () => {
     const connCloseDate = new Date();
     const timeDiff = connCloseDate.getTime() - connOpenDate.getTime();
+    const dateLogText = connCloseDate.toLocaleString('pl');
     const diffText = new Date(timeDiff).toISOString().substring(11, 19);
 
     clearInterval(intervalId);
     console.log(
-      `[${connCloseDate.toLocaleString()}] ${attacker} aborted connection after ${diffText}`
+      `[${dateLogText}] ${attacker} aborted connection after ${diffText}`
     );
   });
 });

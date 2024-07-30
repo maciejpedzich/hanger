@@ -10,22 +10,17 @@ const randomDelay = () => Math.floor(Math.random() * delayDiff + minDelay);
 const server = createServer((req, res) => {
   const connOpenDate = new Date();
   const dateText = connOpenDate.toLocaleString('pl');
-  const attacker = req.headers['x-forwarded-for'];
+  const scannerIP = req.headers['x-forwarded-for'];
   const host = req.headers['x-forwarded-host'];
   const endpoint = `${req.method} ${req.url}`;
   let charIdx = 0;
 
-  console.log(`[${dateText}] ${attacker} targeted ${host} on ${endpoint}`);
+  console.log(`[${dateText}] ${scannerIP} targeted ${host} on ${endpoint}`);
 
   const hang = () => {
     if (res.closed) return;
-
-    if (charIdx === msg.length) {
-      charIdx = 0;
-      res.write('\n');
-    } else {
-      res.write(msg[charIdx++]);
-    }
+    else if (charIdx === msg.length) res.end('\n');
+    else res.write(msg[charIdx++]);
 
     setTimeout(hang, randomDelay());
   };
@@ -36,11 +31,12 @@ const server = createServer((req, res) => {
     const connCloseDate = new Date();
     const timeDiff = connCloseDate.getTime() - connOpenDate.getTime();
     const dateText = connCloseDate.toLocaleString('pl');
-    const diffText = new Date(timeDiff).toISOString().substring(11, 19);
+    const diffText = new Date(timeDiff).toISOString().substring(14, 19);
 
-    console.log(
-      `[${dateText}] ${attacker} aborted connection after ${diffText}`
-    );
+    const hangResult =
+      charIdx === msg.length ? 'received the message' : 'aborted connection';
+
+    console.log(`[${dateText}] ${scannerIP} ${hangResult} after ${diffText}`);
   });
 });
 

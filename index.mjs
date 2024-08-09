@@ -2,8 +2,8 @@ import { createServer } from 'node:http';
 import { setTimeout } from 'node:timers';
 
 const msg = ':) you are an idiot hahahahaha :)';
-const minDelay = 1000;
-const maxDelay = 5000;
+const minDelay = 3000;
+const maxDelay = 7000;
 const delayDiff = maxDelay - minDelay;
 const randomDelay = () => Math.floor(Math.random() * delayDiff + minDelay);
 

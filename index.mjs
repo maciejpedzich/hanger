@@ -11,11 +11,14 @@ const server = createServer((req, res) => {
   const connOpenDate = new Date();
   const dateText = connOpenDate.toLocaleString('pl');
   const scannerIP = req.headers['x-forwarded-for'];
+  const userAgent = req.headers['user-agent'];
   const host = req.headers['x-forwarded-host'];
   const endpoint = `${req.method} ${req.url}`;
   let charIdx = 0;
 
-  console.log(`[${dateText}] ${scannerIP} targeted ${host} on ${endpoint}`);
+  console.log(
+    `[${dateText}] ${scannerIP} (${userAgent}) targeted ${host} on ${endpoint}`
+  );
 
   const hang = () => {
     if (res.closed) return;

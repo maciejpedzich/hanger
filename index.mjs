@@ -15,6 +15,11 @@ const server = createServer((req, res) => {
   const host = req.headers['x-forwarded-host'];
   const endpoint = `${req.method} ${req.url}`;
 
+  if (endpoint === 'GET /health') {
+    res.statusCode = 200;
+    return res.end('OK\n');
+  }
+
   console.log(
     `[${dateText}] ${scannerIP} (${userAgent}) targeted ${host} on ${endpoint}`
   );

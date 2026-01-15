@@ -12,4 +12,4 @@ HEALTHCHECK \
   --timeout=5s \
   --start-period=3s \
   --retries=3 \
-  CMD ["wget", "http://localhost/health", "-O", "/dev/null", "-q"]
+  CMD ["wget", "http://localhost:3000/health", "-O", "/dev/null", "-q"]

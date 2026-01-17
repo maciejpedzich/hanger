@@ -54,7 +54,7 @@ const server = createServer((req, res) => {
     const queryParams = new URLSearchParams();
 
     queryParams.append('ip', ip);
-    queryParams.append('categories', '19,21');
+    queryParams.append('categories', '15,21');
     queryParams.append('timestamp', connOpenDate.toISOString());
     queryParams.append(
       'comment',

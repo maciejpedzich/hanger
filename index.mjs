@@ -1,5 +1,4 @@
 import { createServer } from 'node:http';
-import { report } from 'node:process';
 import { setTimeout } from 'node:timers';
 
 const msg = 'Relax, take it easy! For there is nothing that we can do.';

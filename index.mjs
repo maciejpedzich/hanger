@@ -65,6 +65,7 @@ const server = createServer((req, res) => {
     const abuseIpDbRes = await fetch(
       `https://api.abuseipdb.com/api/v2/report?${queryParams.toString()}`,
       {
+        method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Key': process.env.ABUSEIPDB_API_KEY,

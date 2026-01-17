@@ -1,18 +1,16 @@
 import { createServer } from 'node:http';
+import { report } from 'node:process';
 import { setTimeout } from 'node:timers';
 
 const msg = 'Relax, take it easy! For there is nothing that we can do.';
-const minDelay = 3000;
-const maxDelay = 5000;
-const delayDiff = maxDelay - minDelay;
-const randomDelay = () => Math.floor(Math.random() * delayDiff + minDelay);
+const minDelayMs = 3000;
+const maxDelayMs = 6000;
+const delayDiff = maxDelayMs - minDelayMs;
+const randomDelay = () => Math.floor(Math.random() * delayDiff + minDelayMs);
+const ipNextReportDateMap = new Map();
 
 const server = createServer((req, res) => {
   const connOpenDate = new Date();
-  const dateText = connOpenDate.toLocaleString('pl');
-  const scannerIP = req.headers['x-forwarded-for'];
-  const userAgent = req.headers['user-agent'];
-  const host = req.headers['x-forwarded-host'];
   const endpoint = `${req.method} ${req.url}`;
 
   if (endpoint === 'GET /health') {
@@ -20,8 +18,12 @@ const server = createServer((req, res) => {
     return res.end('OK\n');
   }
 
+  const ip = req.headers['x-forwarded-for'];
+  const userAgent = req.headers['user-agent'];
+  const host = req.headers['x-forwarded-host'];
+
   console.log(
-    `[${dateText}] ${scannerIP} (${userAgent}) targeted ${host} on ${endpoint}`
+    `${ip} (${userAgent}) targeted ${host} on ${endpoint}`
   );
 
   let charIdx = 0;
@@ -36,21 +38,63 @@ const server = createServer((req, res) => {
 
   hang();
 
-  res.once('close', () => {
+  res.once('close', async () => {
     const connCloseDate = new Date();
-    const timeDiff = connCloseDate.getTime() - connOpenDate.getTime();
-    const dateText = connCloseDate.toLocaleString('pl');
-    const diffText = new Date(timeDiff).toISOString().substring(14, 19);
+    const diffText = new Date(connCloseDate - connOpenDate)
+      .toISOString()
+      .substring(14, 19);
 
+    const nextIpReportDate = ipNextReportDateMap.get(ip) || connCloseDate;
     const hangResult =
       charIdx === msg.length ? 'received the message' : 'aborted connection';
 
-    console.log(`[${dateText}] ${scannerIP} ${hangResult} after ${diffText}`);
+    console.log(`${ip} ${hangResult} after ${diffText}`);
+
+    if (connCloseDate < nextIpReportDate) return;
+
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('ip', ip);
+    queryParams.append('categories', '19,21');
+    queryParams.append('timestamp', connOpenDate.toISOString());
+    queryParams.append(
+      'comment',
+      `Vulnerability scanner detected!\nUser-Agent: ${userAgent}\nEndpoint: ${endpoint}`
+    );
+
+    const abuseIpDbRes = await fetch(
+      `https://api.abuseipdb.com/api/v2/report?${queryParams.toString()}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Key': process.env.ABUSEIPDB_API_KEY,
+        }
+      }
+    );
+
+    if (abuseIpDbRes.ok) {
+      const reportDate = new Date();
+
+      console.log(`${ip} has been reported!`);
+      ipNextReportDateMap.set(
+        ip,
+        new Date(
+          reportDate.getFullYear(),
+          reportDate.getMonth(),
+          reportDate.getDate() + 1,
+          reportDate.getHours(),
+          reportDate.getMinutes(),
+          reportDate.getSeconds()
+        )
+      );
+    } else {
+      console.error(
+        `Failed to report ${ip}: ${abuseIpDbRes.status} ${abuseIpDbRes.statusText}`
+      );
+    }
   });
 });
 
 server.listen(3000);
 
-process.on('SIGTERM', () => {
-  server.close();
-});
+process.on('SIGTERM', () => server.close());
